@@ -1,6 +1,18 @@
 const express = require("express");
 const app = express();
+const morgan = require("morgan");
+
 app.use(express.json());
+morgan.token("content", (req, res) => JSON.stringify(req.body));
+
+app.use(
+  morgan(
+    ":method :url :status :req[content-length] - :response-time[3] ms :content",
+    {
+      skip: (req, res) => req.method !== "POST",
+    }
+  )
+);
 
 let persons = [
   {
@@ -74,6 +86,12 @@ app.delete("/api/persons/:id", (request, response) => {
     response.status(204).end();
   }
 });
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+
+app.use(unknownEndpoint);
 
 const PORT = 3001;
 app.listen(PORT, () => {

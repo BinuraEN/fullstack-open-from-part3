@@ -1,6 +1,10 @@
 const express = require("express");
-const app = express();
+const cors = require("cors");
 const morgan = require("morgan");
+
+const app = express();
+app.use(cors());
+app.use(express.static("build"));
 
 app.use(express.json());
 morgan.token("content", (req, res) => JSON.stringify(req.body));
@@ -72,7 +76,7 @@ app.post("/api/persons", (request, response) => {
 
     entry.id = newId;
     persons = persons.concat(entry);
-    response.status(201).end();
+    response.status(201).send(entry);
   }
 });
 
@@ -93,7 +97,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint);
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`app listening on port: ${PORT}`);
 });

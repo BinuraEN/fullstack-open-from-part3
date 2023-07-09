@@ -1,6 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+
+const Contact = require("./models/contact");
 
 const app = express();
 app.use(cors());
@@ -42,7 +45,11 @@ let persons = [
 ];
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Contact.find()
+    .then((result) => response.json(result))
+    .catch((err) => {
+      console.log("error: ", err);
+    });
 });
 app.get("/api/info", (request, response) => {
   const date = new Date();
@@ -72,11 +79,18 @@ app.post("/api/persons", (request, response) => {
   } else if (persons.find((p) => p.name === entry.name)) {
     response.status(400).json({ error: "name must be unique" });
   } else {
-    const newId = Math.floor(Math.random() * 999999 + 1);
-
-    entry.id = newId;
-    persons = persons.concat(entry);
-    response.status(201).send(entry);
+    const contact = new Contact({
+      name: entry.name,
+      number: entry.number,
+    });
+    contact
+      .save()
+      .then((result) => {
+        response.status(201).send(result);
+      })
+      .catch((err) => {
+        response.status(500).json({ error: `${err.message}` });
+      });
   }
 });
 
